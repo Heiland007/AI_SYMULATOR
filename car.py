@@ -6,9 +6,9 @@ import csv
 import neat
 import pygame
 
-# Constants
-# WIDTH = 1600
-# HEIGHT = 880
+# Stale
+# WIDTH(szerokosc) = 1600
+# HEIGHT(wysokosc) = 880
 
 WIDTH = 1920
 HEIGHT = 1080
@@ -19,39 +19,38 @@ CAR_SIZE_Y = 60
 #Wyznaczenie koloru granicy/kolizji
 BORDER_COLOR = (255, 255, 255, 255)
 
-current_generation = 0  # Generation counter
+current_generation = 0  #Licznik generacji
 
 
 class Car:
 
     def __init__(self):
-        # Load Car Sprite and Rotate
-        self.sprite = pygame.image.load('assets/car.png').convert()  # Convert Speeds Up A Lot
+        #Ladowanie ducha i jego rotacji
+        self.sprite = pygame.image.load('assets/car.png').convert()  #przyspieszenie konwersji
         self.sprite = pygame.transform.scale(self.sprite, (CAR_SIZE_X, CAR_SIZE_Y))
         self.rotated_sprite = self.sprite
 
-        self.position = [830, 920]  # Starting Position
+        self.position = [830, 920]  #Pozycja startowa 
         self.angle = 0
         self.speed = 0
 
-        self.speed_set = False  # Flag For Default Speed Later on
+        self.speed_set = False  #Flaga dla predkosci defaultowej
+        self.center = [self.position[0] + CAR_SIZE_X / 2, self.position[1] + CAR_SIZE_Y / 2]  #Obliczanie srodka
 
-        self.center = [self.position[0] + CAR_SIZE_X / 2, self.position[1] + CAR_SIZE_Y / 2]  # Calculate Center
+        self.radars = []  #Lista dla radarow
+        self.drawing_radars = []  #Pokazywanie radarow
 
-        self.radars = []  # List For Sensors / Radars
-        self.drawing_radars = []  # Radars To Be Drawn
+        self.alive = True  #Sprawdzanie czy samochod jest "zywy" z funkcja boolowska 
 
-        self.alive = True  # Boolean To Check If Car is Crashed
-
-        self.distance = 0  # Distance Driven
-        self.time = 0  # Time Passed
+        self.distance = 0  #Przejechana odleglosc
+        self.time = 0  #Czas ktory minal
 
     def draw(self, screen):
-        screen.blit(self.rotated_sprite, self.position)  # Draw Sprite
-        self.draw_radar(screen)  # OPTIONAL FOR SENSORS
+        screen.blit(self.rotated_sprite, self.position)  #pokazujemy ducha
+        self.draw_radar(screen)  #popkazujemy sensory
 
     def draw_radar(self, screen):
-        # Optionally Draw All Sensors / Radars
+        #Pokazujemy wszystkie radary
         for radar in self.radars:
             position = radar[0]
             pygame.draw.line(screen, (0, 255, 0), self.center, position, 1)
@@ -60,8 +59,8 @@ class Car:
     def check_collision(self, game_map):
         self.alive = True
         for point in self.corners:
-            # If Any Corner Touches Border Color -> Crash
-            # Assumes Rectangle
+            #Meritum sprawdzenia wypadku, dotkniecie koloru sciany=wypadek
+            #Przyjmujemy prostokat
             if game_map.get_at((int(point[0]), int(point[1]))) == BORDER_COLOR:
                 self.alive = False
                 break
@@ -71,44 +70,43 @@ class Car:
         x = int(self.center[0] + math.cos(math.radians(360 - (self.angle + degree))) * length)
         y = int(self.center[1] + math.sin(math.radians(360 - (self.angle + degree))) * length)
 
-        # While We Don't Hit BORDER_COLOR AND length < 300 (just a max) -> go further and further
+        #Dopuki nie dotkniemy koloru sciany i dlugosc < 300 (przyjenty max) to poruszamy sie dalej
         while not game_map.get_at((x, y)) == BORDER_COLOR and length < 300:
             length = length + 1
             x = int(self.center[0] + math.cos(math.radians(360 - (self.angle + degree))) * length)
             y = int(self.center[1] + math.sin(math.radians(360 - (self.angle + degree))) * length)
 
-        # Calculate Distance To Border And Append To Radars List
+        #Kalkulujemy dystans do granicy i dodajemy do listy radarow
         dist = int(math.sqrt(math.pow(x - self.center[0], 2) + math.pow(y - self.center[1], 2)))
         self.radars.append([(x, y), dist])
 
     def update(self, game_map):
-        # Set The Speed To 20 For The First Time
-        # Only When Having 4 Output Nodes With Speed Up and Down
+        #Ustawiamy predkosc na 15
         if not self.speed_set:
             self.speed = 15
             self.speed_set = True
 
-        # Get Rotated Sprite And Move Into The Right X-Direction
-        # Don't Let The Car Go Closer Than 20px To The Edge
+        #Dostajemy obroconego ducha nastepnie ruszamy w kierunku x
+        #Nie pozwalamy zbizyc sie do granicy bardziej niz 20px
         self.rotated_sprite = self.rotate_center(self.sprite, self.angle)
         self.position[0] += math.cos(math.radians(360 - self.angle)) * self.speed
         self.position[0] = max(self.position[0], 20)
         self.position[0] = min(self.position[0], WIDTH - 120)
 
-        # Increase Distance and Time
+        #Zwiekszamy czas i dystans
         self.distance += self.speed
         self.time += 1
 
-        # Same For Y-Position
+        #Nie pozwalamy zbizyc sie do granicy bardziej niz 20px dla pozycji y
         self.position[1] += math.sin(math.radians(360 - self.angle)) * self.speed
         self.position[1] = max(self.position[1], 20)
         self.position[1] = min(self.position[1], WIDTH - 120)
 
-        # Calculate New Center
+        #Okreslamy nowy srodek
         self.center = [int(self.position[0]) + CAR_SIZE_X / 2, int(self.position[1]) + CAR_SIZE_Y / 2]
 
-        # Calculate Four Corners
-        # Length Is Half The Side
+        #Obliczamy cztery narozniki
+        #Dlugosc jest polowa boku
         length = 0.5 * CAR_SIZE_X
         left_top = [self.center[0] + math.cos(math.radians(360 - (self.angle + 30))) * length,
                     self.center[1] + math.sin(math.radians(360 - (self.angle + 30))) * length]
@@ -120,16 +118,16 @@ class Car:
                         self.center[1] + math.sin(math.radians(360 - (self.angle + 330))) * length]
         self.corners = [left_top, right_top, left_bottom, right_bottom]
 
-        # Check Collisions And Clear Radars
+        #sprawdzamy kolizje i czyscimy radary
         self.check_collision(game_map)
         self.radars.clear()
 
-        # From -90 To 120 With Step-Size 45 Check Radar
+        #Sprawdz radar co 45 dla od -90 do 120
         for d in range(-90, 120, 45):
             self.check_radar(d, game_map)
 
     def get_data(self):
-        # Get Distances To Border
+        #Odczytujemy dystans do granicy
         radars = self.radars
         return_values = [0, 0, 0, 0, 0]
         for i, radar in enumerate(radars):
@@ -138,16 +136,16 @@ class Car:
         return return_values
 
     def is_alive(self):
-        # Basic Alive Function
+        #Podstawowa funkca istnienia
         return self.alive
 
     def get_reward(self):
-        # Calculate Reward (Maybe Change?)
-        # return self.distance / 50.0
+        #Kalkulujemy nagrode 
+        #Zwroc self.distance / 50.0
         return self.distance / (CAR_SIZE_X / 2)
 
     def rotate_center(self, image, angle):
-        # Rotate The Rectangle
+        #Obracamy kwardrat
         rectangle = image.get_rect()
         rotated_image = pygame.transform.rotate(image, angle)
         rotated_rectangle = rectangle.copy()
@@ -157,15 +155,15 @@ class Car:
 
 
 def run_simulation(genomes, config):
-    # Empty Collections For Nets and Cars
+    #Puste kolekcje
     nets = []
     cars = []
 
-    # Initialize PyGame And The Display
+    #inicjujemy PyGame i wyswietlamy
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-    # For All Genomes Passed Create A New Neural Network
+    #Dla wszystkich genomow utworz nowa siec neuronowa
     for i, g in genomes:
         net = neat.nn.FeedForwardNetwork.create(g, config)
         nets.append(net)
@@ -173,41 +171,41 @@ def run_simulation(genomes, config):
 
         cars.append(Car())
 
-    # Clock Settings
-    # Font Settings & Loading Map
+    #Ustawienie zegara
+    #Ustawienie czcionki & mapy
     clock = pygame.time.Clock()
     generation_font = pygame.font.SysFont("Arial", 30)
     alive_font = pygame.font.SysFont("Arial", 20)
-    game_map = pygame.image.load('assets/map_easy.png').convert()  # Convert Speeds Up A Lot
+    game_map = pygame.image.load('assets/map_easy.png').convert() 
 
     global current_generation
     current_generation += 1
 
-    # Simple Counter To Roughly Limit Time (Not Good Practice)
+    #Licznik do limitu czasu
     counter = 0
 
     while True:
-        # Exit On Quit Event
+        #Wyjscie
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit(0)
 
-        # For Each Car Get The Acton It Takes
+        #wykonaj akcje dla kazdego samochodu
         for i, car in enumerate(cars):
             output = nets[i].activate(car.get_data())
             choice = output.index(max(output))
             if choice == 0:
-                car.angle += 10  # Left
+                car.angle += 10  #Lewo o 10
             elif choice == 1:
-                car.angle -= 10  # Right
+                car.angle -= 10  #Prawo o 10
             elif choice == 2:
                 if (car.speed - 2 >= 12):
-                    car.speed -= 2  # Slow Down
+                    car.speed -= 2  #zwolnij
             else:
-                car.speed += 2  # Speed Up
+                car.speed += 2  #przyspiesz
 
-        # Check If Car Is Still Alive
-        # Increase Fitness If Yes And Break Loop If Not
+        #Sprawdzenie czy dalej zyje
+        #Zwieksz still_alive jezeli zyje jezeli nie przerwij
         still_alive = 0
         for i, car in enumerate(cars):
             if car.is_alive():
@@ -219,16 +217,16 @@ def run_simulation(genomes, config):
             break
 
         counter += 1
-        if counter == 30 * 40:  # Stop After About 20 Seconds
+        if counter == 30 * 40:  #Skoncz po 20 sec
             break
 
-        # Draw Map And All Cars That Are Alive
+        #Zaladuj mape i wszystkie zywe samochody
         screen.blit(game_map, (0, 0))
         for car in cars:
             if car.is_alive():
                 car.draw(screen)
 
-        # Display Info
+        #wyswietl info
         text = generation_font.render("Generation: " + str(current_generation), True, (0, 0, 0))
         text_rect = text.get_rect()
         text_rect.center = (900, 450)
@@ -240,12 +238,12 @@ def run_simulation(genomes, config):
         screen.blit(text, text_rect)
 
         pygame.display.flip()
-        clock.tick(60)  # 60 FPS
+        clock.tick(60)  #dla 60 FPS
 
 
 def play():
     pygame.display.set_caption("Symulation")
-    # Load Config
+    #Zaladuj Config
     config_path = "./config.txt"
     config = neat.config.Config(neat.DefaultGenome,
                                 neat.DefaultReproduction,
@@ -253,13 +251,13 @@ def play():
                                 neat.DefaultStagnation,
                                 config_path)
 
-    # Create Population And Add Reporters
+    #Stworz populacje i dodaj reporterow
     population = neat.Population(config)
     population.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     population.add_reporter(stats)
 
-    # Run Simulation For A Maximum of 1000 Generations
+    #Maksymalnie 1000 generacji
     population.run(run_simulation, 20)
 
     pygame.display.set_mode((1280, 720))

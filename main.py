@@ -1,6 +1,6 @@
 import pygame
 import sys
-#pobranie struktury przycisku ze skryptu button
+#Pobranie struktury przycisku ze skryptu button
 from button import Button
 
 import options_game
@@ -11,7 +11,7 @@ pygame.init()
 #Podanie wymiarów
 SCREEN = pygame.display.set_mode((1280, 720))
 
-#zczytanie zmiennych z assetów
+#Zczytanie zmiennych z assetów
 BG_MENU = pygame.image.load("assets/menu.png")
 
 #Deklaracja czcionki i jej rozmiaru
@@ -31,18 +31,18 @@ def options():
     pygame.display.update()
 
 def main_menu():
-    #nazwanie okan startowego
+    #nazwanie okna startowego
     pygame.display.set_caption("Menu")
 
     while True:
         #Wgranie zdjęcia i zczytanie pozycji kursora.
         SCREEN.blit(BG_MENU, (0, 0))
         MOUSE_POS = pygame.mouse.get_pos()
-        #wyrenderowanie napisu Menu na stronie głównej i podanie jego pozycji.
+        #Wyrenderowanie napisu Menu na stronie głównej i podanie jego pozycji.
         MENU_TITLE = get_font(100).render("MENU", True, "#68228B")
         MENU_RECT = MENU_TITLE.get_rect(center=(640, 100))
 
-        #Deklaracja przycisków, stylu, rozmiaru, wyglądu, pozycji
+        #Deklaracja przycisków, stylu, rozmiaru, wyglądu i pozycji
         PLAY_BUTTON = Button(image=pygame.image.load("assets/bg_play_button.png"),
                              pos=(640, 250),
                              text_input="PLAY",
@@ -62,15 +62,15 @@ def main_menu():
                              base_color="#68228B",
                              hovering_color="White")
 
-        # wyrenderowanie napisu Menu na stronie głównej i podanie jego pozycji.
+        #Wyrenderowanie napisu Menu na stronie głównej i podanie jego pozycji.
         SCREEN.blit(MENU_TITLE, MENU_RECT)
 
-        #Funkcja która zienaia nam kolor po najechaniu na danyc przycisk
+        #Funkcja która zmienia nam kolor po najechaniu na dany przycisk
         for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
             button.changeColor(MOUSE_POS)
             button.update(SCREEN)
 
-        #dodanie finkcji przyciskom + funkcji wychodzenia poprzez zamknięcie okienka
+        #Dodanie funkcji przyciskom + funkcji wychodzenia poprzez zamknięcie okienka
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()

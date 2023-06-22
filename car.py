@@ -26,7 +26,7 @@ class Car:
 
     def __init__(self):
         #Ladowanie ducha i jego rotacji
-        self.sprite = pygame.image.load('assets/car.png').convert()  #przyspieszenie konwersji
+        self.sprite = pygame.image.load('assets/car_p.png').convert()  #przyspieszenie konwersji
         self.sprite = pygame.transform.scale(self.sprite, (CAR_SIZE_X, CAR_SIZE_Y))
         self.rotated_sprite = self.sprite
 

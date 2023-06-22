@@ -1,14 +1,36 @@
 import math
-import random
 import sys
 import csv
 
 import neat
 import pygame
 
+#Załadowanie pliku csv
+csv_data = './dane.csv'
+
 # Stale
 # WIDTH(szerokosc) = 1600
 # HEIGHT(wysokosc) = 880
+
+mapa = ""
+pojazd = ""
+licz = 0
+czas = 0
+pre = 0
+gene = 0
+
+#Wczytanie danych z pliku CSV
+with open(csv_data, 'r') as plik_csv:
+    czytnik = csv.DictReader(plik_csv)
+    for wiersz in czytnik:
+        mapa = wiersz['mapa']
+        pojazd = wiersz['pojazd']
+        licz = int(wiersz['licz'])
+        czas = int(wiersz['czas'])
+        pre = int(wiersz['pre'])
+        gene = int(wiersz['gene'])
+        break
+
 
 WIDTH = 1920
 HEIGHT = 1080
@@ -26,11 +48,13 @@ class Car:
 
     def __init__(self):
         #Ladowanie ducha i jego rotacji
-        self.sprite = pygame.image.load('assets/car_p.png').convert()  #przyspieszenie konwersji
+        car_render = 'assets/' + pojazd + '.png'
+        self.sprite = pygame.image.load(car_render).convert()  #przyspieszenie konwersji
         self.sprite = pygame.transform.scale(self.sprite, (CAR_SIZE_X, CAR_SIZE_Y))
         self.rotated_sprite = self.sprite
 
-        self.position = [830, 920]  #Pozycja startowa 
+        # Pozycja startowa
+        self.position = [830, 920]
         self.angle = 0
         self.speed = 0
 
@@ -83,7 +107,7 @@ class Car:
     def update(self, game_map):
         #Ustawiamy predkosc na 15
         if not self.speed_set:
-            self.speed = 15
+            self.speed = pre
             self.speed_set = True
 
         #Dostajemy obroconego ducha nastepnie ruszamy w kierunku x
@@ -176,7 +200,8 @@ def run_simulation(genomes, config):
     clock = pygame.time.Clock()
     generation_font = pygame.font.SysFont("Arial", 30)
     alive_font = pygame.font.SysFont("Arial", 20)
-    game_map = pygame.image.load('assets/map_easy.png').convert() 
+    mapa_render = 'assets/' + mapa + '.png'
+    game_map = pygame.image.load(mapa_render).convert()
 
     global current_generation
     current_generation += 1
@@ -217,7 +242,10 @@ def run_simulation(genomes, config):
             break
 
         counter += 1
-        if counter == 30 * 40:  #Skoncz po 20 sec
+
+        end_time = czas * 60
+
+        if counter == end_time:  #Skoncz po 20 sec
             break
 
         #Zaladuj mape i wszystkie zywe samochody
@@ -258,6 +286,6 @@ def play():
     population.add_reporter(stats)
 
     #Maksymalnie 1000 generacji
-    population.run(run_simulation, 20)
+    population.run(run_simulation, gene)
 
     pygame.display.set_mode((1280, 720))

@@ -7,6 +7,7 @@ import csv
 
 import car as symulation
 
+#Załadowanie pliku csv
 csv_data = './dane.csv'
 
 pygame.init()
@@ -31,7 +32,7 @@ def values():
     pre = 0
     gene = 0
 
-    #Wczytanie danychz pliku CSV
+    #Wczytanie danych z pliku CSV
     with open(csv_data, 'r') as plik_csv:
         czytnik = csv.DictReader(plik_csv)
         for wiersz in czytnik:
@@ -180,7 +181,7 @@ def values():
                            base_color="#68228B",
                            hovering_color="White")
 
-        OPTIONS_TEXT = get_font(20).render("PODAJ ILOŚĆ POPULACJI:", True, "Black")
+        OPTIONS_TEXT = get_font(20).render("PODAJ ILOSC POPULACJI:", True, "Black")
         OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 600))
         SCREEN.blit(OPTIONS_TEXT, OPTIONS_RECT)
 
@@ -229,12 +230,21 @@ def values():
                         writer = csv.writer(plik_csv)
                         writer.writerow(['mapa', 'pojazd', 'licz', 'czas', 'pre', 'gene'])
                         writer.writerow([mapa, pojazd, licz, czas, pre, gene])
+                        # zmiana ilości polulacji
+                        with open('./config.txt', 'r') as file:
+                            lines = file.readlines()
+                        for i, _ in enumerate(lines):
+                            if 3 == i:
+                                lines[i] = 'pop_size              = {}\n'.format(licz)
+                                break
+                        with open('./config.txt', 'w') as file:
+                            file.writelines(lines)
                     main_menu()
                 #Edycja danych
                 if EASY.checkForInput(MOUSE_POS):
                     mapa = "map_easy"
                 if MEDIUM.checkForInput(MOUSE_POS):
-                    mapa = "map_basic"
+                    mapa = "map_medium"
                 if HARD.checkForInput(MOUSE_POS):
                     mapa = "map_basic"
                 if PINK_CAR.checkForInput(MOUSE_POS):
